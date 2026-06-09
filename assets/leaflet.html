@@ -1,0 +1,399 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Sentinel Map</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/python-visualization/folium@main/folium/templates/leaflet_heat.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        background: #080d18;
+      }
+      #map {
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Custom marker styles */
+      .risk-marker {
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 700;
+        color: white;
+        font-family: sans-serif;
+      }
+
+      /* Route line pulse */
+      .selected-route {
+        filter: drop-shadow(0 0 6px currentColor);
+      }
+
+      /* Loading overlay */
+      #loading {
+        position: fixed;
+        inset: 0;
+        background: #080d18;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 12px;
+        z-index: 9999;
+      }
+      #loading-text {
+        color: rgba(255, 255, 255, 0.4);
+        font-family: sans-serif;
+        font-size: 12px;
+        letter-spacing: 2px;
+      }
+      .load-bar {
+        width: 120px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 1px;
+        overflow: hidden;
+      }
+      .load-fill {
+        height: 100%;
+        background: rgba(79, 142, 247, 0.7);
+        border-radius: 1px;
+        animation: loadanim 1.5s ease-in-out infinite;
+      }
+      @keyframes loadanim {
+        0% {
+          width: 0%;
+          margin-left: 0;
+        }
+        50% {
+          width: 60%;
+          margin-left: 20%;
+        }
+        100% {
+          width: 0%;
+          margin-left: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loading">
+      <div
+        style="
+          color: white;
+          font-family: sans-serif;
+          font-size: 18px;
+          font-weight: 800;
+          letter-spacing: 3px;
+        "
+      >
+        SENTINEL
+      </div>
+      <div class="load-bar"><div class="load-fill"></div></div>
+      <div id="loading-text">LOADING MAP</div>
+    </div>
+
+<div id="map"></div>
+<!-- Controls -->
+<div style="position:fixed;bottom:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;">
+  <button onclick="toggleLabels()" id="label-btn" style="background:rgba(10,10,18,0.9);border:1px solid rgba(255,255,255,0.15);color:white;padding:8px 14px;border-radius:10px;font-size:11px;font-weight:700;font-family:sans-serif;letter-spacing:0.5px;cursor:pointer;">
+    LABELS OFF
+  </button>
+  <button onclick="toggleFullscreen()" style="background:rgba(10,10,18,0.9);border:1px solid rgba(255,255,255,0.15);color:white;padding:8px 14px;border-radius:10px;font-size:11px;font-weight:700;font-family:sans-serif;letter-spacing:0.5px;cursor:pointer;">
+    ⛶ FULLSCREEN
+  </button>
+</div>
+    <script>
+      // ── Config
+      const RISK_COLORS = {
+        CRITICAL: "#EF4444", // red
+        HIGH: "#EF4444", // red
+        MODERATE: "#FFFFFF", // white
+        SAFE: "#22C55E", // green
+      };
+
+      const ROUTE_COLORS = {
+        safe: "#22C55E",
+        balanced: "#F59E0B",
+        fast: "#EF4444",
+      };
+
+      // ── State
+      let map,
+        userMarker,
+        routeLayers = [],
+        riskCircles = [];
+      let userLat = 26.4499,
+        userLng = 80.3319; // default: Kanpur
+      let apiBase = "";
+      let selectedRoute = null;
+
+      // ── Init map
+      function initMap() {
+        map = L.map("map", {
+          center: [userLat, userLng],
+          zoom: 14,
+          zoomControl: false,
+          attributionControl: false,
+        });
+
+        // Dark tile layer
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+        }).addTo(map);
+        // User location marker
+        userMarker = L.circleMarker([userLat, userLng], {
+          radius: 10,
+          fillColor: "#4F8EF7",
+          color: "rgba(79,142,247,0.3)",
+          weight: 8,
+          fillOpacity: 1,
+        }).addTo(map);
+
+        // Pulse ring around user
+        L.circleMarker([userLat, userLng], {
+          radius: 20,
+          fillColor: "transparent",
+          color: "#4F8EF7",
+          weight: 1,
+          fillOpacity: 0,
+          opacity: 0.3,
+        }).addTo(map);
+        hideLoading();
+      }
+
+      // ── Update user location (called from React Native)
+      function updateLocation(lat, lng) {
+        userLat = lat;
+        userLng = lng;
+        if (userMarker) userMarker.setLatLng([lat, lng]);
+        map.setView([lat, lng], 14);
+      }
+
+      // ── Draw risk zones from API data
+      function drawRiskZones(zones) {
+         window._allZones = zones; 
+        riskCircles.forEach((c) => map.removeLayer(c));
+        riskCircles = [];
+
+        zones.forEach((zone) => {
+          const color = RISK_COLORS[zone.label] || RISK_COLORS.SAFE;
+          const circle = L.circleMarker([zone.lat, zone.lng], {
+            radius: 8,
+            fillColor: color,
+            fillOpacity: 0.9,
+            color: "#000000",
+            weight: 1,
+            opacity: 1,
+          })
+            .bindPopup(
+              `
+            <b>${zone.locality}</b><br>
+            <span style="color:${color};font-weight:bold">${zone.label}</span><br>
+            ${zone.total_incidents} incidents
+          `,
+            )
+            .addTo(map);
+          riskCircles.push(circle);
+        });
+      }
+
+      function drawNoDataZones(zones) {
+        window._noDataZones = zones;
+        zones.forEach((zone) => {
+          L.circleMarker([zone.lat, zone.lng], {
+            radius: 6,
+            fillColor: "#3B82F6",
+            fillOpacity: 0.9,
+            color: "#000000",
+            weight: 1,
+            opacity: 1,
+          })
+            .bindPopup(
+              `
+            <b>${zone.locality}</b><br>
+            <span style="color:#3B82F6;font-weight:bold">NO DATA</span>
+          `,
+            )
+            .addTo(map);
+        });
+      }
+
+      function drawHotspots(hotspots) {
+        hotspots.forEach((h) => {
+          L.circle([h.lat, h.lng], {
+            radius: 500,
+            fillColor: "#FF0000",
+            fillOpacity: 0.25,
+            color: "#FF0000",
+            weight: 2,
+            opacity: 0.8,
+          }).addTo(map);
+
+          const label = L.divIcon({
+            className: "",
+            html: `<div style="background:rgba(255,0,0,0.15);border:1px solid rgba(255,0,0,0.6);color:#FF4444;padding:2px 7px;border-radius:8px;font-size:9px;font-weight:700;font-family:sans-serif;white-space:nowrap;">🔥 ${h.locality} · ${h.count} incidents</div>`,
+            iconAnchor: [0, 0],
+          });
+          L.marker([h.lat, h.lng], { icon: label }).addTo(map);
+        });
+      }
+
+      // ── Draw 3 routes
+      function drawRoutes(origin, destination, routes) {
+        // Clear existing routes
+        routeLayers.forEach((l) => map.removeLayer(l));
+        routeLayers = [];
+
+        routes.forEach((route) => {
+          const color = ROUTE_COLORS[route.type] || "#4F8EF7";
+          const line = L.polyline(route.coords, {
+            color: color,
+            weight: route.selected ? 4 : 2.5,
+            opacity: route.selected ? 0.9 : 0.4,
+            dashArray: route.type === "fast" ? "8, 6" : null,
+          }).addTo(map);
+          routeLayers.push(line);
+        });
+
+        // Fit map to show routes
+        if (routeLayers.length > 0) {
+          const group = L.featureGroup(routeLayers);
+          map.fitBounds(group.getBounds().pad(0.2));
+        }
+      }
+
+      // ── Highlight selected route
+      function selectRoute(type) {
+        selectedRoute = type;
+        routeLayers.forEach((line, i) => {
+          const types = ["safe", "balanced", "fast"];
+          const isSelected = types[i] === type;
+          line.setStyle({
+            weight: isSelected ? 5 : 2,
+            opacity: isSelected ? 1 : 0.25,
+          });
+        });
+        // Tell React Native which route was selected
+        sendToApp({ type: "routeSelected", route: type });
+      }
+
+      // ── Receive messages from React Native
+      window.receiveMessage = function (data) {
+        const msg = typeof data === "string" ? JSON.parse(data) : data;
+        switch (msg.type) {
+          case "setLocation":
+            updateLocation(msg.lat, msg.lng);
+            break;
+          case "setApiBase":
+            apiBase = msg.url;
+            fetchRiskData();
+            break;
+          case "drawRoutes":
+            drawRoutes(msg.origin, msg.destination, msg.routes);
+            break;
+          case "selectRoute":
+            selectRoute(msg.route);
+            break;
+          case "mockData":
+            drawRiskZones(msg.zones);
+            break;
+        }
+      };
+
+      // ── Send message to React Native
+      function sendToApp(data) {
+        if (window.ReactNativeWebView) {
+          window.ReactNativeWebView.postMessage(JSON.stringify(data));
+        }
+      }
+
+      // ── Fetch risk data from backend
+      async function fetchRiskData() {
+        try {
+          const res = await fetch("./assets/map_data.json");
+          const data = await res.json();
+          if (data.zones) drawRiskZones(data.zones);
+          if (data.no_data) drawNoDataZones(data.no_data);
+          if (data.hotspots) drawHotspots(data.hotspots);
+        } catch (e) {
+          console.log("Map data error:", e.message);
+        }
+      }
+      // ── Hide loading screen
+      function hideLoading() {
+        const el = document.getElementById("loading");
+        if (el) el.style.display = "none";
+      }
+      // ── Start
+      window.onload = function () {
+        initMap();
+        fetchRiskData();
+      };
+            // Labels
+      let labelsVisible = false;
+      let labelMarkers = [];
+
+      function toggleLabels() {
+        labelsVisible = !labelsVisible;
+        document.getElementById('label-btn').textContent = labelsVisible ? 'LABELS ON' : 'LABELS OFF';
+        
+        if (labelsVisible) {
+          // Add labels to all risk circles
+          window._allZones && window._allZones.forEach(zone => {
+            const color = RISK_COLORS[zone.label] || RISK_COLORS.SAFE;
+            const m = L.marker([zone.lat, zone.lng], {
+              icon: L.divIcon({
+                className: '',
+                html: `<div style="background:rgba(0,0,0,0.7);color:${color};padding:2px 6px;border-radius:6px;font-size:9px;font-weight:700;font-family:sans-serif;white-space:nowrap;border:1px solid ${color}44;">${zone.locality}</div>`,
+                iconAnchor: [0, 0],
+              })
+            }).addTo(map);
+            labelMarkers.push(m);
+          });
+          window._noDataZones && window._noDataZones.forEach(zone => {
+            const m = L.marker([zone.lat, zone.lng], {
+              icon: L.divIcon({
+                className: '',
+                html: `<div style="background:rgba(0,0,0,0.7);color:#3B82F6;padding:2px 6px;border-radius:6px;font-size:9px;font-weight:700;font-family:sans-serif;white-space:nowrap;border:1px solid #3B82F644;">${zone.locality}</div>`,
+                iconAnchor: [0, 0],
+              })
+            }).addTo(map);
+            labelMarkers.push(m);
+          });
+        } else {
+          labelMarkers.forEach(m => map.removeLayer(m));
+          labelMarkers = [];
+        }
+      }
+
+      // Fullscreen
+      let isFullscreen = false;
+      function toggleFullscreen() {
+        isFullscreen = !isFullscreen;
+        if (window.ReactNativeWebView) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'toggleFullscreen', value: isFullscreen }));
+        }
+      }
+    </script>
+  </body>
+</html>
