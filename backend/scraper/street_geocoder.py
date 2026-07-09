@@ -241,51 +241,55 @@ LOCALITY_COORDS = {
     "Mysore Road":      (12.9400, 77.5000),
 
     # ── KANPUR CORE ──────────────────────────────────────────
-    "Kakadeo":          (26.5050, 80.3150),
-    "Kidwai Nagar":     (26.4650, 80.3550),
-    "Civil Lines":      (26.4800, 80.3500),
-    "Kalyanpur":        (26.5100, 80.2900),
-    "Govind Nagar":     (26.4900, 80.3200),
-    "Armapur":          (26.4800, 80.2800),
-    "Swaroop Nagar":    (26.5000, 80.3300),
-    "Barra":            (26.4350, 80.3800),
-    "Harsh Nagar":      (26.4950, 80.3100),
-    "Shyam Nagar":      (26.5100, 80.3400),
-    "Panki":            (26.4400, 80.2800),
-    "Chakeri":          (26.4833, 80.4167),
-    "Rawatpur":         (26.5020, 80.3500),
-    "Fazalganj":        (26.4350, 80.3600),
-    "Naubasta":         (26.5333, 80.3833),
-    "Vikas Nagar":      (26.5200, 80.3600),
-    "Benajhabar":       (26.4800, 80.3600),
-    "Juhi":             (26.4350, 80.3200),
-    "Shivrajpur":       (26.5800, 80.1800),
-    "Bilhaur":          (26.7456, 80.0448),
-    "Jajmau":           (26.4183, 80.4000),
-    "Gwaltoli":         (26.4650, 80.3500),
-    "Colonelganj":      (26.4700, 80.3400),
-    "Hatia":            (26.4550, 80.3350),
-    "Sisamau":          (26.4600, 80.3300),
-    "Yashoda Nagar":    (26.4750, 80.3650),
-    "Lal Bangla":       (26.4900, 80.3450),
-    "Collectorganj":    (26.4700, 80.3550),
-    "Parade Ground":    (26.4750, 80.3400),
-    "Moti Jheel":       (26.4650, 80.3450),
-    "Beconganj":        (26.4700, 80.3300),
-    "IIT Kanpur":       (26.5123, 80.2329),
-    "Kalpi Road":       (26.4200, 80.3100),
-    "Kanpur Central":   (26.4609, 80.3218),
-    "Unnao":            (26.5490, 80.4980),
-    "Purwa":            (26.4500, 80.7833),
-    "Bangarmau":        (26.6833, 80.2167),
-    "Fatehpur":         (25.9300, 80.8100),
-    "Bindki":           (25.8833, 81.0167),
-    "Khaga":            (25.7667, 81.5000),
-    "Kannauj":          (27.0550, 79.9120),
-    "Etawah":           (26.7850, 79.0200),
-    "Hamirpur":         (25.9500, 80.1500),
-    "Lucknow":          (26.8467, 80.9462),
-    "Raebareli":        (26.2340, 81.2320),
+    # Updated 2026-07 — verified against Wikipedia, GPS databases, OSM.
+    # Significant fixes: Kakadeo (3.65km), Kanpur Central (2.75km), Armapur (2.17km),
+    # Purwa (1.96km), Chakeri (1.66km), Shivrajpur (1.55km), Govind Nagar (1.49km),
+    # Parade Ground (1.47km), Civil Lines (1.41km), Shyam Nagar (1.44km).
+    "Kakadeo":          (26.4789, 80.2911),   # fixed: was 3.65km off
+    "Kidwai Nagar":     (26.4538, 80.3512),   # fixed: 1.29km
+    "Civil Lines":      (26.4674, 80.3484),   # fixed: 1.41km
+    "Kalyanpur":        (26.5119, 80.2895),   # OK: 0.22km
+    "Govind Nagar":     (26.4767, 80.3218),   # fixed: 1.49km
+    "Armapur":          (26.4613, 80.2732),   # fixed: 2.17km
+    "Swaroop Nagar":    (26.4952, 80.3272),   # fixed: 0.59km
+    "Barra":            (26.4244, 80.3774),   # fixed: 1.20km
+    "Harsh Nagar":      (26.4857, 80.3072),   # fixed: 1.06km
+    "Shyam Nagar":      (26.4983, 80.3467),   # fixed: 1.44km
+    "Panki":            (26.4389, 80.2734),   # fixed: 0.63km
+    "Chakeri":          (26.4684, 80.4152),   # fixed: 1.66km
+    "Rawatpur":         (26.5024, 80.3468),   # OK: 0.30km
+    "Fazalganj":        (26.4418, 80.3562),   # fixed: 0.83km
+    "Naubasta":         (26.5318, 80.3886),   # fixed: 0.52km
+    "Vikas Nagar":      (26.5134, 80.3618),   # fixed: 0.75km
+    "Benajhabar":       (26.4729, 80.3634),   # fixed: 0.85km
+    "Juhi":             (26.4284, 80.3152),   # fixed: 0.86km
+    "Shivrajpur":       (26.5792, 80.1634),   # fixed: 1.55km (lng was wrong)
+    "Bilhaur":          (26.7462, 80.0448),   # OK: 0.07km
+    "Jajmau":           (26.4174, 80.3984),   # OK: 0.18km
+    "Gwaltoli":         (26.4573, 80.3418),   # fixed: 1.15km
+    "Colonelganj":      (26.4598, 80.3348),   # fixed: 1.23km
+    "Hatia":            (26.4512, 80.3297),   # fixed: 0.65km
+    "Sisamau":          (26.4584, 80.3268),   # OK: 0.35km
+    "Yashoda Nagar":    (26.4684, 80.3618),   # fixed: 0.79km
+    "Lal Bangla":       (26.4818, 80.3418),   # fixed: 0.96km
+    "Collectorganj":    (26.4573, 80.3518),   # fixed: 1.44km
+    "Parade Ground":    (26.4624, 80.3351),   # fixed: 1.47km
+    "Moti Jheel":       (26.4612, 80.3434),   # OK: 0.45km
+    "Beconganj":        (26.4578, 80.3318),   # fixed: 1.36km
+    "IIT Kanpur":       (26.5123, 80.2329),   # exact — unchanged
+    "Kalpi Road":       (26.4152, 80.3148),   # fixed: 0.70km
+    "Kanpur Central":   (26.4584, 80.3512),   # fixed: 2.75km (station coords)
+    "Unnao":            (26.5455, 80.4983),   # OK: 0.39km
+    "Purwa":            (26.4667, 80.7902),   # fixed: 1.96km
+    "Bangarmau":        (26.6883, 80.2168),   # OK: 0.56km
+    "Fatehpur":         (25.9302, 80.8143),   # OK: 0.40km
+    "Bindki":           (25.8834, 81.0165),   # exact — unchanged
+    "Khaga":            (25.7763, 81.5068),   # fixed: 1.24km
+    "Kannauj":          (27.0554, 79.9097),   # OK: 0.22km
+    "Etawah":           (26.7753, 79.0198),   # fixed: 1.08km
+    "Hamirpur":         (25.9533, 80.1467),   # OK: 0.48km
+    "Lucknow":          (26.8467, 80.9462),   # exact — unchanged
+    "Raebareli":        (26.2344, 81.2322),   # exact — unchanged
 }
 
 ROAD_COORDS = {

@@ -1,0 +1,61 @@
+{
+  "expo": {
+    "name": "Sentinel",
+    "slug": "sentinel",
+    "newArchEnabled": false,
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#080D18"
+    },
+    "android": {
+      "usesCleartextTraffic": true,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#080D18"
+      },
+      "package": "in.securedsystems.sentinel",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "VIBRATE",
+        "RECEIVE_BOOT_COMPLETED",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
+    },
+    "ios": {
+      "bundleIdentifier": "in.securedsystems.sentinel",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Sentinel needs your location to show nearby safety alerts.",
+        "NSLocationAlwaysUsageDescription": "Sentinel monitors your location in the background for your safety."
+      }
+    },
+    "plugins": [
+      "expo-location",
+      "expo-sensors",
+      "expo-notifications",
+      "expo-status-bar",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "0752c53f-d3c0-443a-8389-d7f1f9aa3f3a"
+      }
+    },
+    "owner": "sentinel-gig"
+  }
+}
